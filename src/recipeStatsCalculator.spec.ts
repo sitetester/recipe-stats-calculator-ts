@@ -1,18 +1,43 @@
-import {RecipeStatsCalculator} from "./recipeStatsCalculator";
+import {CountPerRecipe, ExpectedOutput, RecipeStatsCalculator} from "./recipeStatsCalculator";
 
 describe("Recipe stats test cases", () => {
 
-    test("Count the number of unique recipe names", () => {
+    let expectedOutput: ExpectedOutput;
 
-        const expectedOutput = new RecipeStatsCalculator(
+    beforeAll(async () => {
+        const recipeStatsCalculator = new RecipeStatsCalculator(
             {
-                Postcode: "10120",
-                From: 10,
-                To: 3
+                postcode: "10120",
+                from: 10,
+                to: 3
             }
-        ).calculateStats("./resources/hf_test_calculation_fixtures_SMALL.json")
+        )
 
-        expect(expectedOutput.UniqueRecipeCount).toBeGreaterThan(0)
+        const filePath = __dirname + "/resources/hf_test_calculation_fixtures_SMALL.json"
+        expectedOutput = await recipeStatsCalculator.calculateStats(filePath);
+    });
+
+    test("Count the number of unique recipe names", async () => {
+        expect(expectedOutput.uniqueRecipeCount).toBe(4)
+    });
+
+
+    test(`Count the number of occurrences for each unique recipe name (alphabetically ordered by recipe name`, () => {
+
+        // first recipe in sorted order
+        expect(expectedOutput.sortedRecipesCount[0]).toStrictEqual(<CountPerRecipe>{
+            recipe: "A5 Balsamic Veggie Chops",
+            count: 1
+        })
+
+        // it should cover all recipes
+        expect(expectedOutput.sortedRecipesCount.length).toBe(5)
+
+        // `Creamy Dill Chicken` has two counts
+        expect(expectedOutput.sortedRecipesCount[3]).toStrictEqual(<CountPerRecipe>{
+            recipe: "Creamy Dill Chicken",
+            count: 2
+        })
     });
 
 });
